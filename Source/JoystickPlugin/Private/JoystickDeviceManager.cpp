@@ -8,13 +8,13 @@
 * of the BSD license.  See the LICENSE file for details.
 */
 
-#include "JoystickDevice.h"
+#include "JoystickDeviceManager.h"
 
 #include "DeviceSDL.h"
 #include "JoystickFunctionLibrary.h"
 #include "ForcedFeedback/ForcedFeedbackFunctionLibrary.h"
 
-FJoystickDevice::FJoystickDevice(const TSharedRef<FGenericApplicationMessageHandler>& InMessageHandler) : MessageHandler(InMessageHandler)
+JoystickDeviceManager::JoystickDeviceManager(const TSharedRef<FGenericApplicationMessageHandler>& InMessageHandler) : MessageHandler(InMessageHandler)
 {
 	UE_LOG(JoystickPluginLog, Log, TEXT("FJoystickPlugin::StartupModule() creating Device SDL"));
 
@@ -22,37 +22,37 @@ FJoystickDevice::FJoystickDevice(const TSharedRef<FGenericApplicationMessageHand
 	DeviceSDL->Init();
 }
 
-FJoystickDevice::~FJoystickDevice()
+JoystickDeviceManager::~JoystickDeviceManager()
 {
 	DeviceSDL = nullptr;
 }
 
-void FJoystickDevice::Tick(float DeltaTime)
+void JoystickDeviceManager::Tick(float DeltaTime)
 {
 
 }
 
-bool FJoystickDevice::Exec(UWorld* InWorld, const TCHAR* Cmd, FOutputDevice& Ar)
+bool JoystickDeviceManager::Exec(UWorld* InWorld, const TCHAR* Cmd, FOutputDevice& Ar)
 {
 	return false;
 }
 
-void FJoystickDevice::SetChannelValue(int32 ControllerId, FForceFeedbackChannelType ChannelType, float Value)
+void JoystickDeviceManager::SetChannelValue(int32 ControllerId, FForceFeedbackChannelType ChannelType, float Value)
 {
 
 }
 
-void FJoystickDevice::SetChannelValues(int32 ControllerId, const FForceFeedbackValues& Values)
+void JoystickDeviceManager::SetChannelValues(int32 ControllerId, const FForceFeedbackValues& Values)
 {
 
 }
 
-void FJoystickDevice::SetMessageHandler(const TSharedRef<FGenericApplicationMessageHandler>& InMessageHandler)
+void JoystickDeviceManager::SetMessageHandler(const TSharedRef<FGenericApplicationMessageHandler>& InMessageHandler)
 {
 	MessageHandler = InMessageHandler;
 }
 
-void FJoystickDevice::InitInputDevice(const FDeviceInfoSDL &Device)
+void JoystickDeviceManager::InitInputDevice(const FDeviceInfoSDL &Device)
 {
 	FDeviceId DeviceId = Device.DeviceId;
 	FJoystickInfo DeviceInfo;
@@ -148,22 +148,22 @@ void FJoystickDevice::InitInputDevice(const FDeviceInfoSDL &Device)
 
 //Public API Implementation
 
-void FJoystickDevice::JoystickPluggedIn(const FDeviceInfoSDL &DeviceInfoSDL)
+void JoystickDeviceManager::JoystickPluggedIn(const FDeviceInfoSDL &DeviceInfoSDL)
 {
 	UE_LOG(JoystickPluginLog, Log, TEXT("FJoystickPlugin::JoystickPluggedIn() %i"), DeviceInfoSDL.DeviceId.value);
 
 	InitInputDevice(DeviceInfoSDL);
 	for (auto & listener : EventListeners)
 	{
-		UObject * o = listener.Get();
-		if (o != nullptr)
+		UObject * listenerObject = listener.Get();
+		if (listenerObject != nullptr)
 		{
-			IJoystickInterface::Execute_JoystickPluggedIn(o, DeviceInfoSDL.DeviceId.value);
+			IJoystickInterface::Execute_JoystickPluggedIn(listenerObject, DeviceInfoSDL.DeviceId.value);
 		}
 	}
 }
 
-void FJoystickDevice::JoystickUnplugged(FDeviceId DeviceId)
+void JoystickDeviceManager::JoystickUnplugged(FDeviceId DeviceId)
 {
 	InputDevices[DeviceId].Connected = false;
 
@@ -171,78 +171,78 @@ void FJoystickDevice::JoystickUnplugged(FDeviceId DeviceId)
 
 	for (auto & listener : EventListeners)
 	{
-		UObject * o = listener.Get();
-		if (o != nullptr)
+		UObject * listenerObject = listener.Get();
+		if (listenerObject != nullptr)
 		{
-			IJoystickInterface::Execute_JoystickUnplugged(o, DeviceId.value);
+			IJoystickInterface::Execute_JoystickUnplugged(listenerObject, DeviceId.value);
 		}
 	}
 }
 
-void FJoystickDevice::JoystickButton(FDeviceId DeviceId, int32 Button, bool Pressed)
+void JoystickDeviceManager::JoystickButton(FDeviceId DeviceId, int32 Button, bool Pressed)
 {
 	PreviousState[DeviceId].Buttons[Button] = CurrentState[DeviceId].Buttons[Button];
 	CurrentState[DeviceId].Buttons[Button] = Pressed;
 
 	for (auto & listener : EventListeners)
 	{
-		UObject * o = listener.Get();
-		if (o != nullptr)
+		UObject * listenerObject = listener.Get();
+		if (listenerObject != nullptr)
 		{
 			if (Pressed)
-				IJoystickInterface::Execute_JoystickButtonPressed(o, Button, CurrentState[DeviceId]);
+				IJoystickInterface::Execute_JoystickButtonPressed(listenerObject, Button, CurrentState[DeviceId]);
 			else
-				IJoystickInterface::Execute_JoystickButtonReleased(o, Button, CurrentState[DeviceId]);
+				IJoystickInterface::Execute_JoystickButtonReleased(listenerObject, Button, CurrentState[DeviceId]);
 		}
 	}
 }
 
-void FJoystickDevice::JoystickAxis(FDeviceId DeviceId, int32 Axis, float Value)
+void JoystickDeviceManager::JoystickAxis(FDeviceId DeviceId, int32 Axis, float Value)
 {
 	PreviousState[DeviceId].Axes[Axis] = CurrentState[DeviceId].Axes[Axis];
 	CurrentState[DeviceId].Axes[Axis] = Value;
 
 	for (auto & listener : EventListeners)
 	{
-		UObject * o = listener.Get();
-		if (o != nullptr)
+		UObject * listenerObject = listener.Get();
+		if (listenerObject != nullptr)
 		{
-			IJoystickInterface::Execute_JoystickAxisChanged(o, Axis, CurrentState[DeviceId].Axes[Axis], PreviousState[DeviceId].Axes[Axis], CurrentState[DeviceId], PreviousState[DeviceId]);
+			IJoystickInterface::Execute_JoystickAxisChanged(listenerObject, Axis, CurrentState[DeviceId].Axes[Axis], PreviousState[DeviceId].Axes[Axis], CurrentState[DeviceId], PreviousState[DeviceId]);
 		}
 	}
 }
 
-void FJoystickDevice::JoystickHat(FDeviceId DeviceId, int32 Hat, EJoystickPOVDirection Value)
+void JoystickDeviceManager::JoystickHat(FDeviceId DeviceId, int32 Hat, EJoystickPOVDirection Value)
 {
 	PreviousState[DeviceId].Hats[Hat] = CurrentState[DeviceId].Hats[Hat];
 	CurrentState[DeviceId].Hats[Hat] = Value;
 
 	for (auto & listener : EventListeners)
 	{
-		UObject * o = listener.Get();
-		if (o != nullptr)
+		UObject * listenerObject = listener.Get();
+		if (listenerObject != nullptr)
 		{
-			IJoystickInterface::Execute_JoystickHatChanged(o, Hat, Value, CurrentState[DeviceId]);
+			IJoystickInterface::Execute_JoystickHatChanged(listenerObject, Hat, Value, CurrentState[DeviceId]);
 		}
 	}
 }
 
-void FJoystickDevice::JoystickBall(FDeviceId DeviceId, int32 Ball, FVector2D Delta)
+void JoystickDeviceManager::JoystickBall(FDeviceId DeviceId, int32 Ball, FVector2D Delta)
 {
 	PreviousState[DeviceId].Balls[Ball] = CurrentState[DeviceId].Balls[Ball];
 	CurrentState[DeviceId].Balls[Ball] = Delta;
 
 	for (auto & listener : EventListeners)
 	{
-		UObject * o = listener.Get();
-		if (o != nullptr)
+		UObject * listenerObject = listener.Get();
+		if (listenerObject != nullptr)
 		{
-			IJoystickInterface::Execute_JoystickBallMoved(o, Ball, Delta, CurrentState[DeviceId]);
+			IJoystickInterface::Execute_JoystickBallMoved(listenerObject, Ball, Delta, CurrentState[DeviceId]);
 		}
 	}
 }
 
-void FJoystickDevice::SendControllerEvents()
+void JoystickDeviceManager::SendControllerEvents()
 {
 	//UE_LOG(JoystickPluginLog, Log, TEXT("FJoystickDevice::SendControllerEvents()"));
 	
@@ -315,7 +315,7 @@ void FJoystickDevice::SendControllerEvents()
 
 }
 
-bool FJoystickDevice::AddEventListener(UObject* Listener)
+bool JoystickDeviceManager::AddEventListener(UObject* Listener)
 {
 	if (Listener != nullptr && Listener->GetClass()->ImplementsInterface(UJoystickInterface::StaticClass()))
 	{
@@ -325,7 +325,7 @@ bool FJoystickDevice::AddEventListener(UObject* Listener)
 	return false;
 }
 
-void FJoystickDevice::IgnoreGameControllers(bool bIgnore)
+void JoystickDeviceManager::IgnoreGameControllers(bool bIgnore)
 {
 	DeviceSDL->IgnoreGameControllers(bIgnore);
 }

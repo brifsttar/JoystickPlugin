@@ -24,6 +24,10 @@ TSharedPtr<class IInputDevice> FJoystickPlugin::CreateInputDevice(const TSharedR
 void FJoystickPlugin::StartupModule()
 {
 	IJoystickPlugin::StartupModule();
+	FString sdlDir("Plugins/JoystickPlugin/Source/ThirdParty/Win64/SDL2.dll");
+	FString DllRelativePath = FPaths::ProjectDir() + sdlDir;
+	FString DllPath = IFileManager::Get().ConvertToAbsolutePathForExternalAppForRead(*DllRelativePath);
+	void* DLLHandle = FPlatformProcess::GetDllHandle(*DllPath);
 
 #if WITH_EDITOR
 	// Replace parts of the input settings widget to make them wide enough to fit long joystick names

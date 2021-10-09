@@ -10,7 +10,7 @@ void UJoystickForceFeedbackComponent::BeginPlay()
 	}
 
 	Effect = NewObject<UForceFeedbackEffectBase>(this, EffectType);
-	if (Effect == nullptr) 
+	if (Effect == nullptr || Effect->IsPendingKill())
 	{
 		return;
 	}
@@ -21,9 +21,9 @@ void UJoystickForceFeedbackComponent::BeginPlay()
 	Effect->OnUpdatedEffectDelegate.AddDynamic(this, &UJoystickForceFeedbackComponent::OnUpdatedEffect);
 	Effect->OnDestroyedEffectDelegate.AddDynamic(this, &UJoystickForceFeedbackComponent::OnDestroyedEffect);
 
-	Effect->AutoStartOnInit = AutoStartOnInit;
+	Effect->AutoStartOnInit = ComponentData.AutoStartOnInit;
 
-	if (AutoInit) 
+	if (ComponentData.AutoInit) 
 	{
 		Effect->InitialiseEffect();
 	}
@@ -31,7 +31,7 @@ void UJoystickForceFeedbackComponent::BeginPlay()
 
 void UJoystickForceFeedbackComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	if (Effect == nullptr)
+	if (Effect == nullptr || Effect->IsPendingKill())
 	{
 		return;
 	}
@@ -45,27 +45,52 @@ void UJoystickForceFeedbackComponent::EndPlay(const EEndPlayReason::Type EndPlay
 	Effect = nullptr;
 }
 
-void UJoystickForceFeedbackComponent::OnInitialisedEffect_Implementation()
+void UJoystickForceFeedbackComponent::OnInitialisedEffect_Implementation(UForceFeedbackEffectBase* effect)
 {
 
 }
 
-void UJoystickForceFeedbackComponent::OnStartedEffect_Implementation()
+void UJoystickForceFeedbackComponent::OnStartedEffect_Implementation(UForceFeedbackEffectBase* effect)
 {
 
 }
 
-void UJoystickForceFeedbackComponent::OnStoppedEffect_Implementation()
+void UJoystickForceFeedbackComponent::OnStoppedEffect_Implementation(UForceFeedbackEffectBase* effect)
 {
 
 }
 
-void UJoystickForceFeedbackComponent::OnUpdatedEffect_Implementation()
+void UJoystickForceFeedbackComponent::OnUpdatedEffect_Implementation(UForceFeedbackEffectBase* effect)
 {
 
 }
 
-void UJoystickForceFeedbackComponent::OnDestroyedEffect_Implementation()
+void UJoystickForceFeedbackComponent::OnDestroyedEffect_Implementation(UForceFeedbackEffectBase* effect)
 {
 
+}
+
+UForceFeedbackEffectBase* UJoystickForceFeedbackComponent::GetEffect()
+{
+	return Effect;
+}
+
+void UJoystickForceFeedbackComponent::StartEffect()
+{
+	if (Effect == nullptr)
+	{
+		return;
+	}
+
+	Effect->StartEffect();
+}
+
+void UJoystickForceFeedbackComponent::StopEffect()
+{
+	if (Effect == nullptr)
+	{
+		return;
+	}
+
+	Effect->StopEffect();
 }

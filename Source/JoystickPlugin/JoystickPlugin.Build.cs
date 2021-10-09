@@ -34,12 +34,12 @@ namespace UnrealBuildTool.Rules
                 });
 
 
-            var SDL2IncPath = Path.Combine(EngineDirectory, "Source", "ThirdParty", "SDL2", "SDL-gui-backend", "include");
+			var SDLDirectory = Path.Combine(PluginDirectory, "Source", "ThirdParty", "SDL2");
+			var SDL2IncPath = Path.Combine(SDLDirectory, "include");
 
             PublicIncludePaths.Add(SDL2IncPath);
 
-            var SDLDirectory = Path.Combine(PluginDirectory, "ThirdParty", "SDL2");
-            var SDLPlatformDir = Path.Combine(SDLDirectory, Target.Platform.ToString());
+            var SDLPlatformDir = Path.Combine(SDLDirectory, "lib", "x64");
 
             if (Target.Platform == UnrealTargetPlatform.Win64)
             {

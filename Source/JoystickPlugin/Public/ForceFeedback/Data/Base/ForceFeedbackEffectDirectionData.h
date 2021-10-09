@@ -43,7 +43,7 @@ public:
 			hapticDirection.type = SDL_HAPTIC_SPHERICAL;
 			break;
 		case EForceFeedbackDirectionType::STEERING_AXIS:
-			hapticDirection.type = SDL_HAPTIC_FIRST_AXIS;
+			hapticDirection.type = SDL_HAPTIC_CARTESIAN;
 			break;
 		}
 

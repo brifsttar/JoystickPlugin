@@ -8,29 +8,13 @@
 */
 
 #include "JoystickFunctionLibrary.h"
-#include "Interfaces/JoystickPluginInterface.h"
-#include "Interfaces/JoystickInterface.h"
-#include "JoystickDeviceManager.h"
-#include "JoystickPlugin.h"
 
-int32 UJoystickFunctionLibrary::GetDefaultDeviceId()
-{
-	TSharedPtr<JoystickDeviceManager> device = static_cast<FJoystickPlugin&>(IJoystickPlugin::Get()).JoystickDevice;
-	if (device->InputDevices.Num() == 0) 
-	{
-		return -1;
-	}
-	
-	TArray<FJoystickInfo> deviceArray;
-	device->InputDevices.GenerateValueArray(deviceArray);
+THIRD_PARTY_INCLUDES_START
 
-	if (deviceArray.Num() == 0) 
-	{
-		return -1;
-	}
+#include "SDL.h"
+#include "SDL_joystick.h"
 
-	return deviceArray[0].DeviceId;
-}
+THIRD_PARTY_INCLUDES_END
 
 FVector2D UJoystickFunctionLibrary::POVAxis(EJoystickPOVDirection Direction)
 {
@@ -59,99 +43,21 @@ FVector2D UJoystickFunctionLibrary::POVAxis(EJoystickPOVDirection Direction)
 	}
 }
 
-FJoystickInfo UJoystickFunctionLibrary::GetJoystick(int32 DeviceId)
+EJoystickPOVDirection UJoystickFunctionLibrary::HatValueToDirection(const int8 Value)
 {
-	if (!IJoystickPlugin::IsAvailable())
+	switch (Value)
 	{
-		return FJoystickInfo();
+	case SDL_HAT_CENTERED:  return EJoystickPOVDirection::DIRECTION_NONE;
+	case SDL_HAT_UP:        return EJoystickPOVDirection::DIRECTION_UP;
+	case SDL_HAT_RIGHTUP:   return EJoystickPOVDirection::DIRECTION_UP_RIGHT;
+	case SDL_HAT_RIGHT:	    return EJoystickPOVDirection::DIRECTION_RIGHT;
+	case SDL_HAT_RIGHTDOWN: return EJoystickPOVDirection::DIRECTION_DOWN_RIGHT;
+	case SDL_HAT_DOWN:	    return EJoystickPOVDirection::DIRECTION_DOWN;
+	case SDL_HAT_LEFTDOWN:  return EJoystickPOVDirection::DIRECTION_DOWN_LEFT;
+	case SDL_HAT_LEFT:	    return EJoystickPOVDirection::DIRECTION_LEFT;
+	case SDL_HAT_LEFTUP:    return EJoystickPOVDirection::DIRECTION_UP_LEFT;
+	default:
+		//UE_LOG(LogTemp, Warning, TEXT("Warning, POV unhandled case. %d"), (int32)value);
+		return EJoystickPOVDirection::DIRECTION_NONE;
 	}
-
-	TSharedPtr<JoystickDeviceManager> device = static_cast<FJoystickPlugin&>(IJoystickPlugin::Get()).JoystickDevice;
-	if (!device->InputDevices.Contains(FDeviceId(DeviceId)))
-	{
-		return FJoystickInfo();
-	}
-
-	return device->InputDevices[FDeviceId(DeviceId)];
-}
-
-FJoystickState UJoystickFunctionLibrary::GetJoystickState(int32 DeviceId)
-{
-	if (!IJoystickPlugin::IsAvailable())
-	{
-		return FJoystickState();
-	}
-
-	TSharedPtr<JoystickDeviceManager> device = static_cast<FJoystickPlugin&>(IJoystickPlugin::Get()).JoystickDevice;
-	if (!device->InputDevices.Contains(FDeviceId(DeviceId)))
-	{
-		return FJoystickState();
-	}
-
-	return device->CurrentState[FDeviceId(DeviceId)];
-}
-
-FJoystickState UJoystickFunctionLibrary::GetPreviousJoystickState(int32 DeviceId)
-{
-	if (!IJoystickPlugin::IsAvailable())
-	{
-		return FJoystickState();
-	}
-
-	TSharedPtr<JoystickDeviceManager> device = static_cast<FJoystickPlugin&>(IJoystickPlugin::Get()).JoystickDevice;
-	if (!device->InputDevices.Contains(FDeviceId(DeviceId)))
-	{
-		return FJoystickState();
-	}
-
-	return device->PreviousState[FDeviceId(DeviceId)];
-}
-
-int32 UJoystickFunctionLibrary::JoystickCount()
-{
-	if (!IJoystickPlugin::IsAvailable())
-	{
-		return 0;
-	}
-
-	TSharedPtr<JoystickDeviceManager> device = static_cast<FJoystickPlugin&>(IJoystickPlugin::Get()).JoystickDevice;
-	return device->InputDevices.Num();
-}
-
-void UJoystickFunctionLibrary::RegisterForJoystickEvents(UObject* Listener)
-{
-	if (!IJoystickPlugin::IsAvailable())
-	{
-		return;
-	}
-
-	TSharedPtr<JoystickDeviceManager> device = static_cast<FJoystickPlugin&>(IJoystickPlugin::Get()).JoystickDevice;
-	device->AddEventListener(Listener);
-}
-
-void UJoystickFunctionLibrary::MapJoystickDeviceToPlayer(int32 DeviceId, int32 Player)
-{
-	if (!IJoystickPlugin::IsAvailable())
-	{
-		return;
-	}
-
-	TSharedPtr<JoystickDeviceManager> device = static_cast<FJoystickPlugin&>(IJoystickPlugin::Get()).JoystickDevice;
-	if (!device->InputDevices.Contains(FDeviceId(DeviceId)))
-	{
-		return;
-	}
-
-	device->InputDevices[FDeviceId(DeviceId)].Player = Player;
-}
-
-void UJoystickFunctionLibrary::IgnoreGameControllers(bool bIgnore)
-{
-	if (!IJoystickPlugin::IsAvailable())
-	{
-		return;
-	}
-
-	TSharedPtr<JoystickDeviceManager> device = static_cast<FJoystickPlugin&>(IJoystickPlugin::Get()).JoystickDevice;
-	device->IgnoreGameControllers(bIgnore);
 }

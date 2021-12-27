@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Interfaces/JoystickPluginInterface.h"
-#include "JoystickDeviceManager.h"
+#include "JoystickInputDevice.h"
 
 class FJoystickPlugin : public IJoystickPlugin
 {
@@ -9,13 +9,14 @@ class FJoystickPlugin : public IJoystickPlugin
 public:
 	virtual TSharedPtr<class IInputDevice> CreateInputDevice(const TSharedRef<FGenericApplicationMessageHandler>& InMessageHandler) override;
 
-	void ShutdownModule() override;
-
-	void StartupModule() override;
-
-	TSharedPtr<class JoystickDeviceManager> JoystickDevice;
+	virtual void ShutdownModule() override;
+	virtual void StartupModule() override;
+	
+	TSharedPtr<FJoystickInputDevice> GetJoystickInputDevice() const { return JoystickInputDevice; }
 
 private:
 
-	void* SDLDLLHandle = nullptr;
+	void* SdlDllHandle = nullptr;
+	
+	TSharedPtr<FJoystickInputDevice> JoystickInputDevice;
 };

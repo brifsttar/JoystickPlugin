@@ -9,19 +9,22 @@
 
 #include "JoystickPlugin.h"
 
+#include "JoystickSubsystem.h"
 #include "Misc/Paths.h"
 #include "Interfaces/IPluginManager.h"
-
-#if WITH_EDITOR
-#include "InputSettingsCustomization.h"
-#endif
 
 #define LOCTEXT_NAMESPACE "JoystickPlugin"
 
 TSharedPtr<class IInputDevice> FJoystickPlugin::CreateInputDevice(const TSharedRef<FGenericApplicationMessageHandler>& InMessageHandler)
 {
-	JoystickDevice = MakeShareable(new JoystickDeviceManager(InMessageHandler));
-	return JoystickDevice;
+	JoystickInputDevice = MakeShareable(new FJoystickInputDevice(InMessageHandler));
+	UJoystickSubsystem* JoystickSubsystem = GEngine->GetEngineSubsystem<UJoystickSubsystem>();
+	if (JoystickSubsystem)
+	{
+		JoystickSubsystem->InitialiseInputDevice(JoystickInputDevice);
+	}
+	
+	return JoystickInputDevice;
 }
 
 void FJoystickPlugin::StartupModule()
@@ -30,26 +33,22 @@ void FJoystickPlugin::StartupModule()
 	const FString SDLDir = FPaths::Combine(*BaseDir, TEXT("Source"), TEXT("ThirdParty"), TEXT("SDL2"), TEXT("lib"), TEXT("x64/"));
 
 	FPlatformProcess::PushDllDirectory(*SDLDir);
-	SDLDLLHandle = FPlatformProcess::GetDllHandle(*(SDLDir + "SDL2.dll"));
+	SdlDllHandle = FPlatformProcess::GetDllHandle(*(SDLDir + "SDL2.dll"));
 	FPlatformProcess::PopDllDirectory(*SDLDir);
 
 	IJoystickPlugin::StartupModule();
-
-#if WITH_EDITOR
-	// Replace parts of the input settings widget to make them wide enough to fit long joystick names
-	FInputActionMappingCustomizationExtended::Register();
-	FInputAxisMappingCustomizationExtended::Register();
-#endif
-
 }
 
 void FJoystickPlugin::ShutdownModule()
 {
-	FPlatformProcess::FreeDllHandle(SDLDLLHandle);
+	FPlatformProcess::FreeDllHandle(SdlDllHandle);
 
 	IJoystickPlugin::ShutdownModule();
-
-	JoystickDevice = nullptr;
+	
+	if (JoystickInputDevice.IsValid())
+	{
+		JoystickInputDevice.Reset();		
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

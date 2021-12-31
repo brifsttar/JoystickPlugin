@@ -146,6 +146,7 @@ FDeviceInfoSDL UJoystickSubsystem::AddDevice(const int32 DeviceIndex)
 	}
 	
 	Device.InstanceId = SDL_JoystickInstanceID(Device.Joystick);
+	Device.ProductId = GetDeviceIndexGuid(DeviceIndex);
 
 	// DEBUG
 	Device.DeviceName = FString(ANSI_TO_TCHAR(SDL_JoystickName(Device.Joystick)));
@@ -343,9 +344,7 @@ FJoystickDeviceData UJoystickSubsystem::GetInitialDeviceState(const int32 Device
 		const UJoystickInputSettings* InputSettings = GetDefault<UJoystickInputSettings>();
 		for (const FJoystickInputDeviceConfiguration& DeviceConfig : InputSettings->DeviceConfigurations)
 		{
-			const int32 DeviceGuid = FCString::Strtoi(*DeviceConfig.DeviceGUID, nullptr, 16);
-			
-			if ((DeviceConfig.DeviceName.IsEmpty() || Device.DeviceName == DeviceConfig.DeviceName) && (DeviceGuid == 0 || Device.DeviceId == DeviceGuid))
+			if ((DeviceConfig.DeviceName.IsEmpty() || Device.DeviceName == DeviceConfig.DeviceName) && (!DeviceConfig.ProductId.IsValid() || Device.ProductId == DeviceConfig.ProductId))
 			{
 				const int32 PropCount = DeviceConfig.AxisProperties.Num();
 				for (int32 i = 0; i < FMath::Min(AxesCount, PropCount); i++)
@@ -357,18 +356,12 @@ FJoystickDeviceData UJoystickSubsystem::GetInitialDeviceState(const int32 Device
 					
 					const FJoystickInputDeviceAxisProperties& AxisProps = DeviceConfig.AxisProperties[i];
 					FAnalogData& AnalogData = State.Axes[i];
-					if (AxisProps.bEnabled)
-					{
-						AnalogData.RangeMin = AxisProps.RangeMin;
-						AnalogData.RangeMax = AxisProps.RangeMax;
-						AnalogData.Offset = AxisProps.Offset;
-						AnalogData.bInverted = AxisProps.bInverted;
-						AnalogData.bGamepadStick = AxisProps.bGamepadStick;
-					}
-					else
-					{
-						AnalogData.KeyName = NAME_None;
-					}
+					AnalogData.bRemapRanges = AxisProps.bEnabled;
+					AnalogData.RangeMin = AxisProps.RangeMin;
+					AnalogData.RangeMax = AxisProps.RangeMax;
+					AnalogData.Offset = AxisProps.Offset;
+					AnalogData.bInverted = AxisProps.bInverted;
+					AnalogData.bGamepadStick = AxisProps.bGamepadStick;
 				}
 				
 				break;
@@ -382,7 +375,7 @@ FJoystickDeviceData UJoystickSubsystem::GetInitialDeviceState(const int32 Device
 	return State;
 }
 
-FString UJoystickSubsystem::DeviceGUIDtoString(const int32 DeviceIndex) const
+FString UJoystickSubsystem::GetDeviceIndexGuidString(const int32 DeviceIndex) const
 {
 	char Buffer[32];
 	constexpr int8 SizeBuffer = sizeof(Buffer);
@@ -392,7 +385,7 @@ FString UJoystickSubsystem::DeviceGUIDtoString(const int32 DeviceIndex) const
 	return ANSI_TO_TCHAR(Buffer);
 }
 
-FGuid UJoystickSubsystem::DeviceIndexToGUID(const int32 DeviceIndex) const
+FGuid UJoystickSubsystem::GetDeviceIndexGuid(const int32 DeviceIndex) const
 {
 	FGuid Result;
 	const SDL_JoystickGUID GUID = SDL_JoystickGetDeviceGUID(DeviceIndex);

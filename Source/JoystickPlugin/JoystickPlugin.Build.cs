@@ -22,10 +22,13 @@ namespace UnrealBuildTool.Rules
                 new string[]
                 {
                     "Projects",
-                    "InputDevice",
-                    "DeveloperSettings"
+                    "InputDevice"
                 });
-
+            
+#if UE_4_26_OR_LATER
+            PrivateDependencyModuleNames.Add("DeveloperSettings");
+#endif
+            
 			var SDLDirectory = Path.Combine(PluginDirectory, "Source", "ThirdParty", "SDL2");
 			var SDL2IncPath = Path.Combine(SDLDirectory, "include");
 

@@ -13,7 +13,7 @@ struct JOYSTICKPLUGIN_API FJoystickInfo
 	UPROPERTY(EditAnywhere, BlueprintReadonly, Category = JoystickInfo)
 		int32 Player = -1;
 
-	UPROPERTY(VisibleAnywhere, Category = JoystickInfo)
+	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = JoystickInfo)
 		int32 DeviceId = -1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadonly, Category = JoystickInfo)

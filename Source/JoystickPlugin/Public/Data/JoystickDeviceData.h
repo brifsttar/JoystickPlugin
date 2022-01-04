@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Containers/Array.h"
-#include "Data/Input/AnalogData.h"
+#include "Data/Input/AxisData.h"
 #include "Data/Input/BallData.h"
 #include "Data/Input/ButtonData.h"
 #include "Data/Input/HatData.h"
@@ -13,28 +13,30 @@ struct JOYSTICKPLUGIN_API FJoystickDeviceData
 {
 	GENERATED_BODY()
 
-	explicit FJoystickDeviceData(int32 DeviceId = -1) : DeviceId(DeviceId)
+	explicit FJoystickDeviceData(int32 DeviceId = -1)
+		: DeviceId(DeviceId)
+		, VendorId(-1)
 	{
 	}
 
-	UPROPERTY(EditAnywhere, BlueprintReadonly, Category = JoystickState)
+	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = JoystickState)
 		int32 DeviceId;
 
-	UPROPERTY(EditAnywhere, BlueprintReadonly, Category = JoystickState)
+	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = JoystickState)
 		int32 VendorId;
 
-	UPROPERTY(EditAnywhere, BlueprintReadonly, Category = JoystickState)
+	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = JoystickState)
 		FString DeviceName;
 
-	UPROPERTY(EditAnywhere, BlueprintReadonly, Category = JoystickState)
-		TArray<FAnalogData> Axes;
+	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = JoystickState)
+		TArray<FAxisData> Axes;
 
-	UPROPERTY(EditAnywhere, BlueprintReadonly, Category = JoystickState)
+	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = JoystickState)
 		TArray<FButtonData> Buttons;
 
-	UPROPERTY(EditAnywhere, BlueprintReadonly, Category = JoystickState)
+	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = JoystickState)
 		TArray<FHatData> Hats;
 
-	UPROPERTY(EditAnywhere, BlueprintReadonly, Category = JoystickState)
+	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = JoystickState)
 		TArray<FBallData> Balls;
 };

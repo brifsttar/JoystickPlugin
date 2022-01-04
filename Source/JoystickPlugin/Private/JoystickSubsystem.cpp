@@ -1,5 +1,6 @@
 ﻿#include "JoystickSubsystem.h"
 
+#include "JoystickDeviceManager.h"
 #include "JoystickFunctionLibrary.h"
 #include "JoystickInputDeviceAxisProperties.h"
 #include "JoystickInputSettings.h"
@@ -7,8 +8,11 @@
 DEFINE_LOG_CATEGORY(LogJoystickPlugin);
 
 UJoystickSubsystem::UJoystickSubsystem()
+	: IgnoreGameControllers(true)
+	, OwnsSDL(false)
+	, IsInitialised(false)
 {
-	IgnoreGameControllers = true;
+	
 }
 
 void UJoystickSubsystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -51,6 +55,8 @@ void UJoystickSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	{
 		JoystickSubsystemReady.Broadcast();		
 	}
+
+	IsInitialised = true;
 }
 
 void UJoystickSubsystem::Deinitialize()
@@ -70,6 +76,8 @@ void UJoystickSubsystem::Deinitialize()
 	{
 		SDL_Quit();
 	}
+
+	IsInitialised = false;
 }
 
 void UJoystickSubsystem::InitialiseInputDevice(const TSharedPtr<FJoystickInputDevice> NewInputDevice)
@@ -355,13 +363,13 @@ FJoystickDeviceData UJoystickSubsystem::GetInitialDeviceState(const int32 Device
 					}
 					
 					const FJoystickInputDeviceAxisProperties& AxisProps = DeviceConfig.AxisProperties[i];
-					FAnalogData& AnalogData = State.Axes[i];
-					AnalogData.bRemapRanges = AxisProps.bEnabled;
-					AnalogData.RangeMin = AxisProps.RangeMin;
-					AnalogData.RangeMax = AxisProps.RangeMax;
-					AnalogData.Offset = AxisProps.Offset;
-					AnalogData.bInverted = AxisProps.bInverted;
-					AnalogData.bGamepadStick = AxisProps.bGamepadStick;
+					FAxisData& AxisData = State.Axes[i];
+					AxisData.bRemapRanges = AxisProps.bEnabled;
+					AxisData.RangeMin = AxisProps.RangeMin;
+					AxisData.RangeMax = AxisProps.RangeMax;
+					AxisData.Offset = AxisProps.Offset;
+					AxisData.bInverted = AxisProps.bInverted;
+					AxisData.bGamepadStick = AxisProps.bGamepadStick;
 				}
 				
 				break;

@@ -5,7 +5,7 @@ pool: Default
 pr: none
 trigger:
   - master
-  - develop
+  - feature/*
 
 jobs:
 - template: version.yml
@@ -20,6 +20,11 @@ jobs:
         deploy:
           steps:
           - checkout: self
+          - powershell: |
+              $json = Get-Content 'JoystickPlugin.uplugin' -raw | ConvertFrom-Json
+              $json.VersionName = "$(Build.BuildNumber)"
+              $json | ConvertTo-Json -depth 32 | Set-Content 'JoystickPlugin.uplugin'
+            displayName: Update uplugin
           - template: package.yml
             parameters:
               platform: Win64
@@ -43,7 +48,7 @@ jobs:
               action: 'create'
               target: '$(Build.SourceVersion)'
               tagSource: 'userSpecifiedTag'
-              tag: v$(Build.BuildNumber)
+              tag: $(Build.BuildNumber)
               title: $(Build.BuildNumber)
               assets: '$(Build.StagingDirectory)/output/*.zip'
               changeLogCompareToRelease: 'lastFullRelease'
@@ -58,6 +63,11 @@ jobs:
         deploy:
           steps:
           - checkout: self
+          - powershell: |
+              $json = Get-Content 'JoystickPlugin.uplugin' -raw | ConvertFrom-Json
+              $json.VersionName = "$(Build.BuildNumber)"
+              $json | ConvertTo-Json -depth 32 | Set-Content 'JoystickPlugin.uplugin'
+            displayName: Update uplugin
           - template: package.yml
             parameters:
               platform: Win64
@@ -81,7 +91,7 @@ jobs:
               action: 'create'
               target: '$(Build.SourceVersion)'
               tagSource: 'userSpecifiedTag'
-              tag: v$(Build.BuildNumber)
+              tag: $(Build.BuildNumber)
               title: $(Build.BuildNumber)
               assets: '$(Build.StagingDirectory)/output/*.zip'
               isPreRelease: true

@@ -1,3 +1,6 @@
+// JoystickPlugin is licensed under the MIT License.
+// Copyright Jayden Maalouf. All Rights Reserved.
+
 #pragma once
 
 #include "ForceFeedback/Data/Base/ForceFeedbackEffectDirectionData.h"
@@ -7,7 +10,7 @@
 
 #include "Containers/Array.h"
 
-#include "ForceFeedbackEffectCustomData.Generated.h"
+#include "ForceFeedbackEffectCustomData.generated.h"
 
 USTRUCT(BlueprintType)
 struct JOYSTICKPLUGIN_API FForceFeedbackEffectCustomData
@@ -16,34 +19,32 @@ struct JOYSTICKPLUGIN_API FForceFeedbackEffectCustomData
 
 	FForceFeedbackEffectCustomData()
 		: Channels(0)
-		, Period(0)
-		, Samples(0)
+		  , Period(0)
+		  , Samples(0)
 	{
-		
 	}
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Force Feedback|Custom|Data")
-		FForceFeedbackEffectDirectionData DirectionData;
+	FForceFeedbackEffectDirectionData DirectionData;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Force Feedback|Custom|Data")
-		FForceFeedbackEffectDurationData DurationData;
+	FForceFeedbackEffectDurationData DurationData;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Force Feedback|Custom|Data")
-		FForceFeedbackEffectReplayData ReplayData;
+	FForceFeedbackEffectReplayData ReplayData;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Force Feedback|Custom|Data")
-		FForceFeedbackEffectEnvelopeData EnvelopeData;
+	FForceFeedbackEffectEnvelopeData EnvelopeData;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Force Feedback|Custom|Data")
-		uint8 Channels;
+	uint8 Channels;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (UIMin="0", UIMax="1", ClampMin="0", ClampMax="1"), Category = "Force Feedback|Custom|Data")
+	float Period;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (ClampMin = "0", ClampMax = "65535"), Category = "Force Feedback|Custom|Data")
-		int32 Period;
+	int Samples;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (ClampMin = "0", ClampMax = "65535"), Category = "Force Feedback|Custom|Data")
-		int32 Samples;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (ClampMin = "0", ClampMax = "65535"), Category = "Force Feedback|Custom|Data")
-		TArray<int32> Data;
+	TArray<int> Data;
 };
-

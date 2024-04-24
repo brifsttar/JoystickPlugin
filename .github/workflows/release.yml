@@ -1,0 +1,51 @@
+name: release-plugin
+on:
+  workflow_dispatch:
+  push:
+    paths-ignore:
+      - '.github/**'
+      - 'README.md'
+      - 'LICENSE'
+    branches:
+      - master
+
+jobs:
+  release-plugin:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Setup Versioning
+        uses: ./.github/actions/version
+      - name: Package Plugin - 5.1
+        uses: ./.github/actions/package
+        with:
+          engineVersion: '5.1'
+          releaseVersion: ${{ steps.gitversion.outputs.semVer }}
+          epicGamesDirectory: ${{ secrets.EPIC_GAMES_DIRECTORY }}
+          launcherDirectory: ${{ secrets.LAUNCHER_DIRECTORY }}
+      - name: Package Plugin - 5.2
+        uses: ./.github/actions/package
+        with:
+          engineVersion: '5.2'
+          releaseVersion: ${{ steps.gitversion.outputs.semVer }}
+          epicGamesDirectory: ${{ secrets.EPIC_GAMES_DIRECTORY }}
+          launcherDirectory: ${{ secrets.LAUNCHER_DIRECTORY }}
+      - name: Package Plugin - 5.3
+        uses: ./.github/actions/package
+        with:
+          engineVersion: '5.3'
+          releaseVersion: ${{ steps.gitversion.outputs.semVer }}
+          epicGamesDirectory: ${{ secrets.EPIC_GAMES_DIRECTORY }}
+          launcherDirectory: ${{ secrets.LAUNCHER_DIRECTORY }}
+      - name: Create Release
+        uses: ncipollo/release-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          artifacts: '${{ runner.temp }}/output/*.zip'
+          tag: ${{ env.GitVersion_SemVer }}
+          commit: ${{ github.sha }}
+          prerelease: ${{ github.ref != 'refs/heads/master' }}

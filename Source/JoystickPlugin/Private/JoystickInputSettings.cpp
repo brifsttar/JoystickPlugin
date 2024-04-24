@@ -1,57 +1,142 @@
+// JoystickPlugin is licensed under the MIT License.
+// Copyright Jayden Maalouf. All Rights Reserved.
+
 #include "JoystickInputSettings.h"
-
-#include "Engine/Engine.h"
+#include "JoystickInputDevice.h"
 #include "JoystickSubsystem.h"
+#include "Engine/Engine.h"
 
-FName UJoystickInputSettings::GetCategoryName() const
+UJoystickInputSettings::UJoystickInputSettings()
 {
-	return TEXT("Plugins");
+	UseDeviceName = false;
+	IgnoreGameControllers = false;
+#if WITH_EDITOR
+	EnableLogs = true;
+#else
+	EnableLogs = false;
+#endif
 }
 
-void UJoystickInputSettings::DeviceAdded(const FJoystickInputDeviceInformation JoystickInfo)
+void UJoystickInputSettings::DeviceAdded(const FJoystickInformation JoystickInfo)
 {
-	const bool Exists = Devices.ContainsByPredicate([=](const FJoystickInputDeviceInformation& Device) { return Device.ProductId == JoystickInfo.ProductId; });
-	if (Exists)
+	if (ConnectedDevices.ContainsByPredicate([&](const FJoystickInformation& Device)
+	{
+		return Device.InstanceId == JoystickInfo.InstanceId;
+	}))
 	{
 		return;
 	}
-	
-	Devices.Add(JoystickInfo);
+
+	ConnectedDevices.Add(JoystickInfo);
 }
 
-void UJoystickInputSettings::DeviceRemoved(const FGuid JoystickGuid)
+void UJoystickInputSettings::DeviceRemoved(const FJoystickInstanceId& InstanceId)
 {
-	Devices.RemoveAll([=](const FJoystickInputDeviceInformation& Device) { return Device.ProductId == JoystickGuid; });
+	ConnectedDevices.RemoveAll([&](const FJoystickInformation& Device)
+	{
+		return Device.InstanceId == InstanceId;
+	});
+}
+
+void UJoystickInputSettings::ResetDevices()
+{
+	ConnectedDevices.Empty();
+}
+
+const FJoystickInputDeviceConfiguration* UJoystickInputSettings::GetInputDeviceConfiguration(const FGuid& ProductId) const
+{
+	return DeviceConfigurations.FindByPredicate([&](const FJoystickInputDeviceConfiguration& PredicateDeviceConfig)
+	{
+		return (!PredicateDeviceConfig.ProductGuid.IsValid() || ProductId == PredicateDeviceConfig.ProductGuid);
+	});
+}
+
+bool UJoystickInputSettings::GetIgnoreGameControllers() const
+{
+	return IgnoreGameControllers;
+}
+
+bool UJoystickInputSettings::SetIgnoreGameControllers(const bool NewIgnoreGameControllers)
+{
+	const bool OldIgnoreGameControllers = IgnoreGameControllers;
+	IgnoreGameControllers = NewIgnoreGameControllers;
+	return OldIgnoreGameControllers != NewIgnoreGameControllers;
+}
+
+const FJoystickInputDeviceConfiguration* UJoystickInputSettings::GetInputDeviceConfigurationByKey(const FKey& Key) const
+{
+	UJoystickSubsystem* JoystickSubsystem = GEngine->GetEngineSubsystem<UJoystickSubsystem>();
+	if (!IsValid(JoystickSubsystem))
+	{
+		return nullptr;
+	}
+
+	const FJoystickInputDevice* InputDevice = JoystickSubsystem->GetInputDevice();
+	if (InputDevice == nullptr)
+	{
+		return nullptr;
+	}
+
+	FJoystickInformation DeviceInfo;
+	const FJoystickInstanceId& InstanceId = InputDevice->GetInstanceIdByKey(Key);
+	const bool Result = JoystickSubsystem->GetJoystickInfo(InstanceId, DeviceInfo);
+	if (Result == false)
+	{
+		return nullptr;
+	}
+
+	return GetInputDeviceConfiguration(DeviceInfo.ProductGuid);
+}
+
+const FJoystickInputDeviceAxisProperties* UJoystickInputSettings::GetAxisPropertiesByKey(const FKey& AxisKey) const
+{
+	const UJoystickSubsystem* JoystickSubsystem = GEngine->GetEngineSubsystem<UJoystickSubsystem>();
+	if (!IsValid(JoystickSubsystem))
+	{
+		return nullptr;
+	}
+
+	const FJoystickInputDevice* InputDevice = JoystickSubsystem->GetInputDevice();
+	if (InputDevice == nullptr)
+	{
+		return nullptr;
+	}
+
+	const int AxisIndex = InputDevice->GetAxisIndexFromKey(AxisKey);
+	if (AxisIndex == -1)
+	{
+		return nullptr;
+	}
+
+	const FJoystickInputDeviceConfiguration* DeviceConfiguration = GetInputDeviceConfigurationByKey(AxisKey);
+	if (DeviceConfiguration == nullptr)
+	{
+		return nullptr;
+	}
+
+	return DeviceConfiguration->AxisProperties.FindByPredicate([&](const FJoystickInputDeviceAxisProperties& AxisProperty)
+	{
+		return AxisProperty.AxisIndex != -1 && AxisProperty.AxisIndex == AxisIndex;
+	});
 }
 
 #if WITH_EDITOR
 void UJoystickInputSettings::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeChainProperty(PropertyChangedEvent);
-	
-	UJoystickSubsystem* JoystickSubsystem = GEngine->GetEngineSubsystem<UJoystickSubsystem>();
-	if (JoystickSubsystem == nullptr)
+
+	const UJoystickSubsystem* JoystickSubsystem = GEngine->GetEngineSubsystem<UJoystickSubsystem>();
+	if (!IsValid(JoystickSubsystem))
 	{
 		return;
 	}
-	
+
 	FJoystickInputDevice* InputDevice = JoystickSubsystem->GetInputDevice();
 	if (InputDevice == nullptr)
 	{
 		return;
 	}
 
-	TArray<int32> DeviceIds;
-	InputDevice->GetDeviceIds(DeviceIds);
-
-	for(const int32& DeviceId : DeviceIds)
-	{
-		JoystickSubsystem->ReinitialiseJoystickData(DeviceId);
-	}
-}
-
-FText UJoystickInputSettings::GetSectionText() const
-{
-	return NSLOCTEXT("JoystickInputPlugin", "JoystickInputSettingsSection", "Joystick Input");
+	InputDevice->UpdateAxisProperties();
 }
 #endif

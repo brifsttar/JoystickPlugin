@@ -1,16 +1,14 @@
+// JoystickPlugin is licensed under the MIT License.
+// Copyright Jayden Maalouf. All Rights Reserved.
+
 #pragma once
 
-#include "Runtime/Launch/Resources/Version.h"
-
-#include "ForceFeedbackDirectionType.Generated.h"
+#include "ForceFeedbackDirectionType.generated.h"
 
 UENUM(BlueprintType)
-enum class EForceFeedbackDirectionType : uint8 
+enum class EForceFeedbackDirectionType : uint8
 {
-	POLAR = 0,
-	CARTESIAN = 1,
-	SPHERICAL = 2,
-#if (ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION >= 26 || ENGINE_MAJOR_VERSION > 4)
-	STEERING_AXIS = 3
-#endif
+	Polar,
+	Cartesian,
+	Spherical
 };

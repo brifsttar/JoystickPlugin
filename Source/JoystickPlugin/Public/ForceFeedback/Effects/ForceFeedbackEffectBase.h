@@ -1,110 +1,121 @@
+// JoystickPlugin is licensed under the MIT License.
+// Copyright Jayden Maalouf. All Rights Reserved.
+
 #pragma once
 
-#include "UObject/Object.h"
 #include "Tickable.h"
+#include "Data/JoystickInstanceId.h"
 
 THIRD_PARTY_INCLUDES_START
-
 #include "SDL_haptic.h"
-
 THIRD_PARTY_INCLUDES_END
 
 #include "ForceFeedbackEffectBase.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInitialisedEffect, UForceFeedbackEffectBase*, effect);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStartedEffect, UForceFeedbackEffectBase*, effect);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStoppedEffect, UForceFeedbackEffectBase*, effect);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnUpdatedEffect, UForceFeedbackEffectBase*, effect);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDestroyedEffect, UForceFeedbackEffectBase*, effect);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInitialisedEffect, const UForceFeedbackEffectBase*, Effect);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStartedEffect, const UForceFeedbackEffectBase*, Effect);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStoppedEffect, const UForceFeedbackEffectBase*, Effect);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnUpdatedEffect, const UForceFeedbackEffectBase*, Effect);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDestroyedEffect, const UForceFeedbackEffectBase*, Effect);
 
 UCLASS(BlueprintType)
 class JOYSTICKPLUGIN_API UForceFeedbackEffectBase : public UObject, public FTickableGameObject
 {
-    GENERATED_BODY()
+	GENERATED_BODY()
+
 public:
-	UForceFeedbackEffectBase();
-	
-    virtual void BeginDestroy() override;
-	
+	UForceFeedbackEffectBase(const FObjectInitializer& ObjectInitializer);
+
+	virtual void BeginDestroy() override;
+
 	// Begin FTickableGameObject Interface.
-	virtual void Tick(float DeltaTime);
-	virtual bool IsTickable() const { return IsInitialised; }
-	virtual bool IsTickableInEditor() const { return false; }
-	virtual bool IsTickableWhenPaused() const { return false; }
-	virtual TStatId GetStatId() const { return TStatId(); }
-    // End FTickableGameObject Interface.
-
-    UFUNCTION(BlueprintCallable, Category = "Force Feedback|Functions")
-        void InitialiseEffect();
+	virtual void Tick(float DeltaTime) override;
+	virtual bool IsTickable() const override { return IsInitialised; }
+	virtual bool IsTickableInEditor() const override { return false; }
+	virtual bool IsTickableWhenPaused() const override { return false; }
+	virtual TStatId GetStatId() const override { return TStatId(); }
+	// End FTickableGameObject Interface.
 
 	UFUNCTION(BlueprintCallable, Category = "Force Feedback|Functions")
-		void StartEffect();
-
-    UFUNCTION(BlueprintCallable, Category = "Force Feedback|Functions")
-		void StopEffect();
+	void InitialiseEffect();
 
 	UFUNCTION(BlueprintCallable, Category = "Force Feedback|Functions")
-		void DestroyEffect();
+	void StartEffect();
 
 	UFUNCTION(BlueprintCallable, Category = "Force Feedback|Functions")
-		void UpdateEffect();
+	void StopEffect();
+
+	UFUNCTION(BlueprintCallable, Category = "Force Feedback|Functions")
+	void DestroyEffect();
+
+	UFUNCTION(BlueprintCallable, Category = "Force Feedback|Functions")
+	void UpdateEffect();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Force Feedback|Events")
-		void OnInitialisedEffect();
+	void OnInitialisedEffect();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Force Feedback|Events")
-		void OnStartedEffect();
+	void OnStartedEffect();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Force Feedback|Events")
-		void OnStoppedEffect();
+	void OnStoppedEffect();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Force Feedback|Events")
-		void OnUpdatedEffect();
+	void OnUpdatedEffect();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Force Feedback|Events")
-		void OnDestroyedEffect();
-	
+	void OnDestroyedEffect();
+
 	UFUNCTION(BlueprintImplementableEvent, meta=(DisplayName = "Tick"))
-		void ReceiveTick(float DeltaSeconds);
+	void ReceiveTick(float DeltaSeconds);
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Force Feedback|Functions")
-		int32 EffectStatus() const;
+	int EffectStatus() const;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Force Feedback|Effect Data", meta = (ExposeOnSpawn = true))
-		int32 DeviceId;
+	UFUNCTION(BlueprintCallable, Category = "Force Feedback|Functions")
+	void SetInstanceId(const FJoystickInstanceId& NewInstanceId);
 
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadonly, Category = "Force Feedback|Effect Data")
-		int32 EffectId;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Force Feedback", meta = (ExposeOnSpawn = true))
+	FJoystickInstanceId InstanceId;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = "Force Feedback|Effect Data")
-		bool IsInitialised;
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadonly, Category = "Force Feedback")
+	int EffectId;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Force Feedback|Effect Data", meta = (ExposeOnSpawn = true))
-		bool AutoStartOnInit;
+	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = "Force Feedback")
+	bool IsInitialised;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Force Feedback|Effect Data", meta = (ExposeOnSpawn = true))
-		int32 Iterations;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Force Feedback", meta = (ExposeOnSpawn = true))
+	bool AutoStartOnInitialisation;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Force Feedback|Effect Data", meta = (ExposeOnSpawn = true))
-		bool Infinite;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Force Feedback", meta = (ExposeOnSpawn = true))
+	bool AutoInitialise;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Force Feedback", meta = (ExposeOnSpawn = true, EditCondition="!InfiniteIterations", UIMin="0", ClampMin="0"))
+	int Iterations;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Force Feedback", meta = (ExposeOnSpawn = true))
+	bool InfiniteIterations;
 
 	UPROPERTY(BlueprintAssignable, meta = (DisplayName = "OnInitialisedEffect"), Category = "Force Feedback|Delegates")
-		FOnInitialisedEffect OnInitialisedEffectDelegate;
+	FOnInitialisedEffect OnInitialisedEffectDelegate;
 
 	UPROPERTY(BlueprintAssignable, meta = (DisplayName = "OnStartedEffect"), Category = "Force Feedback|Delegates")
-		FOnStartedEffect OnStartedEffectDelegate;
+	FOnStartedEffect OnStartedEffectDelegate;
 
 	UPROPERTY(BlueprintAssignable, meta = (DisplayName = "OnStoppedEffect"), Category = "Force Feedback|Delegates")
-		FOnStoppedEffect OnStoppedEffectDelegate;
+	FOnStoppedEffect OnStoppedEffectDelegate;
 
 	UPROPERTY(BlueprintAssignable, meta = (DisplayName = "OnUpdatedEffect"), Category = "Force Feedback|Delegates")
-		FOnUpdatedEffect OnUpdatedEffectDelegate;
+	FOnUpdatedEffect OnUpdatedEffectDelegate;
 
 	UPROPERTY(BlueprintAssignable, meta = (DisplayName = "OnDestroyedEffect"), Category = "Force Feedback|Delegates")
-		FOnDestroyedEffect OnDestroyedEffectDelegate;
+	FOnDestroyedEffect OnDestroyedEffectDelegate;
 
 protected:
-	
 	SDL_HapticEffect Effect;
 
 	virtual void CreateEffect();

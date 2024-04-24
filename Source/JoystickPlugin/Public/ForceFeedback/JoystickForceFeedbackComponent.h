@@ -1,54 +1,60 @@
+// JoystickPlugin is licensed under the MIT License.
+// Copyright Jayden Maalouf. All Rights Reserved.
+
 #pragma once
 
-#include "Templates/SubclassOf.h"
 #include "Components/ActorComponent.h"
-#include "Effects/ForceFeedbackEffectBase.h"
 #include "Data/ForceFeedbackComponentData.h"
+#include "Data/JoystickInstanceId.h"
 
 #include "JoystickForceFeedbackComponent.generated.h"
+
+class UForceFeedbackEffectBase;
 
 UCLASS(Blueprintable, ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class JOYSTICKPLUGIN_API UJoystickForceFeedbackComponent : public UActorComponent
 {
-
 	GENERATED_BODY()
 
 public:
-	
+	UJoystickForceFeedbackComponent(const FObjectInitializer& ObjectInitializer);
+
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Force Feedback|Component|Events")
-		void OnInitialisedEffect(UForceFeedbackEffectBase* Effect);
+	void OnInitialisedEffect(const UForceFeedbackEffectBase* Effect);
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Force Feedback|Component|Events")
-		void OnStartedEffect(UForceFeedbackEffectBase* Effect);
+	void OnStartedEffect(const UForceFeedbackEffectBase* Effect);
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Force Feedback|Component|Events")
-		void OnStoppedEffect(UForceFeedbackEffectBase* Effect);
+	void OnStoppedEffect(const UForceFeedbackEffectBase* Effect);
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Force Feedback|Component|Events")
-		void OnUpdatedEffect(UForceFeedbackEffectBase* Effect);
+	void OnUpdatedEffect(const UForceFeedbackEffectBase* Effect);
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Force Feedback|Component|Events")
-		void OnDestroyedEffect(UForceFeedbackEffectBase* Effect);
+	void OnDestroyedEffect(const UForceFeedbackEffectBase* Effect);
 
 	UFUNCTION(BlueprintCallable, Category = "Force Feedback|Component|Functions")
-		UForceFeedbackEffectBase* GetEffect();
+	UForceFeedbackEffectBase* GetEffect() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Force Feedback|Component|Functions")
-		void StartEffect();
+	void StartEffect() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Force Feedback|Component|Functions")
-		void StopEffect();
+	void StopEffect() const;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Force Feedback|Component")
-		TSubclassOf<class UForceFeedbackEffectBase> EffectType;
+	FJoystickInstanceId InstanceId;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Force Feedback|Component")
+	TSubclassOf<UForceFeedbackEffectBase> EffectType;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Force Feedback|Component")
-		FForceFeedbackComponentData ComponentData;
+	FForceFeedbackComponentData ComponentData;
 
 	UPROPERTY(VisibleAnywhere, Category = "Force Feedback|Component")
-		UForceFeedbackEffectBase* ForcedFeedbackEffect;
-
+	UForceFeedbackEffectBase* ForcedFeedbackEffect;
 };

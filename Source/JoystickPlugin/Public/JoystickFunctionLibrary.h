@@ -1,23 +1,21 @@
+// JoystickPlugin is licensed under the MIT License.
+// Copyright Jayden Maalouf. All Rights Reserved.
+
 #pragma once
 
-#include "Data/JoystickPOVDirection.h"
-#include "ForceFeedback/Effects/ForceFeedbackEffectBase.h"
+#include "Data/JoystickPointOfViewDirection.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
+
 #include "JoystickFunctionLibrary.generated.h"
 
 UCLASS()
-class UJoystickFunctionLibrary : public UBlueprintFunctionLibrary
+class JOYSTICKPLUGIN_API UJoystickFunctionLibrary final : public UBlueprintFunctionLibrary
 {
-	
 	GENERATED_BODY()
 
 public:
-
 	UFUNCTION(BlueprintPure, Category = "SDL2 Input|Joystick input")
-		static FVector2D POVAxis(EJoystickPOVDirection Direction);
-	
-	UFUNCTION(BlueprintCallable, Category = "Joystick|Force Feedback|Functions", meta = (DeterminesOutputType = "ClassType", HidePin = "Outer", DefaultToSelf = "Outer"))
-		static UForceFeedbackEffectBase* CreateEffect(UObject* Outer, TSubclassOf<class UForceFeedbackEffectBase> ClassType, bool AutoInitialise = true, const bool AutoStart = false);
-	
-	static EJoystickPOVDirection HatValueToDirection(int8 Value);
+	static FVector2D POVAxis(const EJoystickPointOfViewDirection Direction);
+
+	static EJoystickPointOfViewDirection HatValueToDirection(int8 Value);
 };

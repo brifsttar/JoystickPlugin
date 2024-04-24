@@ -1,0 +1,71 @@
+using System.IO;
+using UnrealBuildTool;
+
+public class JoystickPlugin : ModuleRules
+{
+	public JoystickPlugin(ReadOnlyTargetRules Target) : base(Target)
+	{
+		PublicDependencyModuleNames.AddRange(
+			new[]
+			{
+				"Core",
+				"CoreUObject",
+				"Engine",
+				"SlateCore",
+				"Slate",
+				"ApplicationCore",
+				"InputCore",
+				"InputDevice",
+				"UMG",
+				"Projects"
+			});
+
+<<<<<<< HEAD
+            PrivateDependencyModuleNames.AddRange(
+                new string[]
+                {
+                    "Projects",
+                    "InputDevice"
+                });
+            
+#if UE_4_26_OR_LATER
+            PrivateDependencyModuleNames.Add("DeveloperSettings");
+#endif
+            
+			var SDLDirectory = Path.Combine(PluginDirectory, "Source", "ThirdParty", "SDL2");
+			var SDL2IncPath = Path.Combine(SDLDirectory, "include");
+=======
+		var Sdl2IncludePath =
+			Path.Combine(EngineDirectory, "Source", "ThirdParty", "SDL2", "SDL-gui-backend", "include");
+>>>>>>> upstream/master
+
+		PublicIncludePaths.Add(Sdl2IncludePath);
+
+<<<<<<< HEAD
+            var SDLPlatformDir = Path.Combine(SDLDirectory, "lib", "x64");
+=======
+		var SdlDirectory = Path.Combine(PluginDirectory, "ThirdParty", "SDL2");
+		var SdlPlatformDirectory = Path.Combine(SdlDirectory, Target.Platform.ToString());
+>>>>>>> upstream/master
+
+		if (Target.Platform == UnrealTargetPlatform.Win64)
+		{
+			RuntimeDependencies.Add(Path.Combine(SdlPlatformDirectory, "SDL2.dll"));
+			PublicAdditionalLibraries.Add(Path.Combine(SdlPlatformDirectory, "SDL2.lib"));
+
+<<<<<<< HEAD
+                PublicDelayLoadDLLs.Add("SDL2.dll");
+            }
+        }
+    }
+}
+=======
+			PublicDelayLoadDLLs.Add("SDL2.dll");
+		}
+		else if (Target.Platform == UnrealTargetPlatform.Linux)
+		{
+			//SDL should be loaded as part of the engine
+		}
+	}
+}
+>>>>>>> upstream/master

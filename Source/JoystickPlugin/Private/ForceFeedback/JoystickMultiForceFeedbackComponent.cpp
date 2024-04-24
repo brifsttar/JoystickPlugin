@@ -1,10 +1,21 @@
+// JoystickPlugin is licensed under the MIT License.
+// Copyright Jayden Maalouf. All Rights Reserved.
+
 #include "ForceFeedback/JoystickMultiForceFeedbackComponent.h"
+#include "ForceFeedback/Data/ForceFeedbackComponentData.h"
+#include "ForceFeedback/Effects/ForceFeedbackEffectBase.h"
+
+UJoystickMultiForceFeedbackComponent::UJoystickMultiForceFeedbackComponent(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+	  , InstanceId(0)
+{
+}
 
 void UJoystickMultiForceFeedbackComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (EffectTypes.Num() == 0) 
+	if (EffectTypes.Num() == 0)
 	{
 		return;
 	}
@@ -12,10 +23,12 @@ void UJoystickMultiForceFeedbackComponent::BeginPlay()
 	for (auto& EffectType : EffectTypes)
 	{
 		UForceFeedbackEffectBase* Effect = NewObject<UForceFeedbackEffectBase>(this, EffectType.Key);
-		if (Effect == nullptr || Effect->IsPendingKill())
+		if (!IsValid(Effect))
 		{
 			continue;
 		}
+
+		Effect->SetInstanceId(InstanceId);
 
 		Effect->OnInitialisedEffectDelegate.AddDynamic(this, &UJoystickMultiForceFeedbackComponent::OnInitialisedEffect);
 		Effect->OnStartedEffectDelegate.AddDynamic(this, &UJoystickMultiForceFeedbackComponent::OnStartedEffect);
@@ -23,7 +36,7 @@ void UJoystickMultiForceFeedbackComponent::BeginPlay()
 		Effect->OnUpdatedEffectDelegate.AddDynamic(this, &UJoystickMultiForceFeedbackComponent::OnUpdatedEffect);
 		Effect->OnDestroyedEffectDelegate.AddDynamic(this, &UJoystickMultiForceFeedbackComponent::OnDestroyedEffect);
 
-		Effect->AutoStartOnInit = EffectType.Value.AutoStartOnInit;
+		Effect->AutoStartOnInitialisation = EffectType.Value.AutoStartOnInit;
 
 		if (EffectType.Value.AutoInit)
 		{
@@ -41,10 +54,10 @@ void UJoystickMultiForceFeedbackComponent::EndPlay(const EEndPlayReason::Type En
 		return;
 	}
 
-	for (int32 i = 0; i < Effects.Num(); i++)
+	for (int i = 0; i < Effects.Num(); i++)
 	{
 		UForceFeedbackEffectBase* Effect = Effects[i];
-		if (Effect == nullptr || Effect->IsPendingKill())
+		if (!IsValid(Effect))
 		{
 			continue;
 		}
@@ -55,33 +68,28 @@ void UJoystickMultiForceFeedbackComponent::EndPlay(const EEndPlayReason::Type En
 		Effect->OnUpdatedEffectDelegate.RemoveDynamic(this, &UJoystickMultiForceFeedbackComponent::OnUpdatedEffect);
 		Effect->OnDestroyedEffectDelegate.RemoveDynamic(this, &UJoystickMultiForceFeedbackComponent::OnDestroyedEffect);
 	}
-	
+
 	Effects.Empty();
 }
 
-void UJoystickMultiForceFeedbackComponent::OnInitialisedEffect_Implementation(UForceFeedbackEffectBase* Effect)
+void UJoystickMultiForceFeedbackComponent::OnInitialisedEffect_Implementation(const UForceFeedbackEffectBase* Effect)
 {
-
 }
 
-void UJoystickMultiForceFeedbackComponent::OnStartedEffect_Implementation(UForceFeedbackEffectBase* Effect)
+void UJoystickMultiForceFeedbackComponent::OnStartedEffect_Implementation(const UForceFeedbackEffectBase* Effect)
 {
-
 }
 
-void UJoystickMultiForceFeedbackComponent::OnStoppedEffect_Implementation(UForceFeedbackEffectBase* Effect)
+void UJoystickMultiForceFeedbackComponent::OnStoppedEffect_Implementation(const UForceFeedbackEffectBase* Effect)
 {
-
 }
 
-void UJoystickMultiForceFeedbackComponent::OnUpdatedEffect_Implementation(UForceFeedbackEffectBase* Effect)
+void UJoystickMultiForceFeedbackComponent::OnUpdatedEffect_Implementation(const UForceFeedbackEffectBase* Effect)
 {
-
 }
 
-void UJoystickMultiForceFeedbackComponent::OnDestroyedEffect_Implementation(UForceFeedbackEffectBase* Effect)
+void UJoystickMultiForceFeedbackComponent::OnDestroyedEffect_Implementation(const UForceFeedbackEffectBase* Effect)
 {
-
 }
 
 TArray<UForceFeedbackEffectBase*> UJoystickMultiForceFeedbackComponent::GetEffects()
@@ -91,7 +99,7 @@ TArray<UForceFeedbackEffectBase*> UJoystickMultiForceFeedbackComponent::GetEffec
 
 UForceFeedbackEffectBase* UJoystickMultiForceFeedbackComponent::GetEffectByType(const TSubclassOf<class UForceFeedbackEffectBase> EffectType)
 {
-	for (int32 i = 0; i < Effects.Num(); i++)
+	for (int i = 0; i < Effects.Num(); i++)
 	{
 		UForceFeedbackEffectBase* Effect = Effects[i];
 		if (Effect->GetClass() == EffectType)
@@ -105,7 +113,7 @@ UForceFeedbackEffectBase* UJoystickMultiForceFeedbackComponent::GetEffectByType(
 
 void UJoystickMultiForceFeedbackComponent::StartEffect(UForceFeedbackEffectBase* Effect)
 {
-	if (Effect == nullptr)
+	if (!IsValid(Effect))
 	{
 		return;
 	}
@@ -115,7 +123,7 @@ void UJoystickMultiForceFeedbackComponent::StartEffect(UForceFeedbackEffectBase*
 
 void UJoystickMultiForceFeedbackComponent::StopEffect(UForceFeedbackEffectBase* Effect)
 {
-	if (Effect == nullptr)
+	if (!IsValid(Effect))
 	{
 		return;
 	}

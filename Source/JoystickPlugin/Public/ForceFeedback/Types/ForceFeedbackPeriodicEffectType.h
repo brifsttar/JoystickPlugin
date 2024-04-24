@@ -1,13 +1,16 @@
+// JoystickPlugin is licensed under the MIT License.
+// Copyright Jayden Maalouf. All Rights Reserved.
+
 #pragma once
 
-#include "ForceFeedbackPeriodicEffectType.Generated.h"
+#include "ForceFeedbackPeriodicEffectType.generated.h"
 
 UENUM(BlueprintType)
-enum class EForceFeedbackPeriodicEffectType : uint8 
+enum class EForceFeedbackPeriodicEffectType : uint8
 {
-	SINE,
-	TRIANGLE,
-	SAWTOOTHUP,
-	SAWTOOTHDOWN,
-	LEFTRIGHT
+	Sine,
+	Triangle,
+	SawtoothUp,
+	SawtoothDown,
+	LeftRight
 };

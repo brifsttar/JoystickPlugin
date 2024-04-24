@@ -1,12 +1,15 @@
+// JoystickPlugin is licensed under the MIT License.
+// Copyright Jayden Maalouf. All Rights Reserved.
+
 #pragma once
 
-#include "ForceFeedbackConditionEffectType.Generated.h"
+#include "ForceFeedbackConditionEffectType.generated.h"
 
 UENUM(BlueprintType)
-enum class EForceFeedbackConditionEffectType : uint8 
+enum class EForceFeedbackConditionEffectType : uint8
 {
-	SPRING,
-	DAMPER,
-	INERTIA,
-	FRICTION
+	Spring,
+	Damper,
+	Inertia,
+	Friction
 };

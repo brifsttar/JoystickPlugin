@@ -1,4 +1,7 @@
-﻿#pragma once
+﻿// JoystickPlugin is licensed under the MIT License.
+// Copyright Jayden Maalouf. All Rights Reserved.
+
+#pragma once
 
 #include "AxisData.generated.h"
 
@@ -6,43 +9,60 @@ USTRUCT(BlueprintType)
 struct JOYSTICKPLUGIN_API FAxisData
 {
 	GENERATED_BODY()
-	
+
 	FAxisData()
-		: Index(INDEX_NONE)
-		, Value(0.f)
-		, PreviousValue(0.f)
-		, bRemapRanges(false)
-		, RangeMin(0.f)
-		, RangeMax(1.f)
-		, Offset(0.f)
-		, bInverted(false)
-		, bGamepadStick(false)
+		: Value(0.f)
+		  , PreviousValue(0.f)
+		  , RemappingEnabled(false)
+		  , InputOffset(0.f)
+		  , InvertInput(false)
+		  , InputRangeMin(0.f)
+		  , InputRangeMax(1.f)
+		  , OutputRangeMin(0.f)
+		  , OutputRangeMax(1.f)
+		  , InvertOutput(false)
+		  , bGamepadStick(false)
 	{
 	}
 
-	FAxisData(const int32 InIndex, const float InValue, const float InRangeMin, const float InRangeMax, const float InOffset, const bool bInInverted, const bool bInGamepadStick)
-		: Index(InIndex)
-		, Value(InValue)
-		, PreviousValue(0.f)
-		, bRemapRanges(false)
-		, RangeMin(InRangeMin)
-		, RangeMax(InRangeMax)
-		, Offset(InOffset)
-		, bInverted(bInInverted)
-		, bGamepadStick(bInGamepadStick)
+	FAxisData(const float& InValue,
+	          const float& InInputRangeMin, const float& InInputRangeMax, const float& InOutputRangeMin, const float& InOutputRangeMax,
+	          const float& InOffset, const bool& bInInvertInput, const bool& bInInvertOutput, const bool& bInGamepadStick)
+		: Value(InValue)
+		  , PreviousValue(0.f)
+		  , RemappingEnabled(false)
+		  , InputOffset(InOffset)
+		  , InvertInput(bInInvertInput)
+		  , InputRangeMin(InInputRangeMin)
+		  , InputRangeMax(InInputRangeMax)
+		  , OutputRangeMin(InOutputRangeMin)
+		  , OutputRangeMax(InOutputRangeMax)
+		  , InvertOutput(bInInvertOutput)
+		  , bGamepadStick(bInGamepadStick)
 	{
+	}
+
+	float MapValue(const float Input) const
+	{
+		const float NormalizedValue = (InvertInput ? (Input * -1.0f) : Input);
+		const float OffsetNormalizedValue = NormalizedValue + InputOffset;
+		const float MappedValue = FMath::GetMappedRangeValueClamped(FVector2D(InputRangeMin, InputRangeMax), FVector2D(OutputRangeMin, OutputRangeMax), OffsetNormalizedValue);
+		return InvertOutput ? (MappedValue * -1.0f) : MappedValue;
+	}
+
+	/* Whether the data represents a valid value */
+	bool HasValue() const
+	{
+		return (InputRangeMin != -1.f || InputRangeMax != -1.f);
 	}
 
 	float GetValue() const
 	{
-		if (bRemapRanges)
+		if (RemappingEnabled)
 		{
 			return MapValue(Value);
 		}
-		else
-		{
-			return Value;
-		}		
+		return Value;
 	}
 
 	float GetPreviousValue() const
@@ -50,59 +70,52 @@ struct JOYSTICKPLUGIN_API FAxisData
 		return MapValue(PreviousValue);
 	}
 
-	float MapValue(float Input) const
-	{		
-		const float Factor = 1.f / (RangeMax - RangeMin);
-		if (bGamepadStick)
-		{
-			// Need to do the re-centering before inverting
-			const float NormalizedValue = ((Input * Factor) - 0.5f) * 2 * (bInverted ? -1.0f : 1.0f);
-			return NormalizedValue + Offset;
-		}
-
-		const float NormalizedValue = (bInverted ? (Input * Factor * -1.f) : (Input * Factor));
-		return NormalizedValue + Offset;
-	}
-
-	/* Whether the data represents a valid value */
-	bool HasValue() const
+	void Update(const float& InValue)
 	{
-		return ((Index != INDEX_NONE) && ((RangeMin != -1.f) || (RangeMax != -1.f)));
+		PreviousValue = Value;
+		Value = InValue;
 	}
-
-	/* Index in the value data*/
-	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = "Joystick|Data")
-		int32 Index;
 
 	/* Current analog value */
 	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = "Joystick|Data")
-		float Value;
-	
+	float Value;
+
 	/* Last analog value */
 	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = "Joystick|Data")
-		float PreviousValue;
+	float PreviousValue;
 
 	/* Should remap ranges */
 	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = "Joystick|Data")
-		bool bRemapRanges;
+	bool RemappingEnabled;
+
+	/* Offset to apply to normalized axis value */
+	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = "Joystick|Data")
+	float InputOffset;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = "Joystick|Data")
+	bool InvertInput;
 
 	/* Min Analog value */
 	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = "Joystick|Data")
-		float RangeMin;
-	
+	float InputRangeMin;
+
 	/* Max analog value */
 	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = "Joystick|Data")
-		float RangeMax;
-	
-	/* Offset to apply to normalized axis value */
+	float InputRangeMax;
+
+	/* Min Analog value */
 	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = "Joystick|Data")
-		float Offset;
+	float OutputRangeMin;
+
+	/* Max analog value */
+	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = "Joystick|Data")
+	float OutputRangeMax;
 
 	/* Is this axis inverted */
 	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = "Joystick|Data")
-		bool bInverted;
+	bool InvertOutput;
 
 	/* Is this axis centered on 0 instead of 0.5 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = "Joystick|Data")
-		bool bGamepadStick;
+	bool bGamepadStick;
 };

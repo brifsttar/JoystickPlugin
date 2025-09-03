@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "Runtime/Launch/Resources/Version.h"
 #include "ForceFeedback/Types/ForceFeedbackDirectionType.h"
 
 #include "ForceFeedbackEffectDirectionData.generated.h"
@@ -35,16 +36,25 @@ struct JOYSTICKPLUGIN_API FForceFeedbackEffectDirectionData
 		HapticDirection.dir[1] = FMath::Clamp<Sint32>(Direction.Y * INT32_MAX, INT32_MIN, INT32_MAX);
 		HapticDirection.dir[2] = FMath::Clamp<Sint32>(Direction.Z * INT32_MAX, INT32_MIN, INT32_MAX);
 
-		switch (DirectionType) {
-		case EForceFeedbackDirectionType::Polar:
-			HapticDirection.type = SDL_HAPTIC_POLAR;
-			break;
-		case EForceFeedbackDirectionType::Cartesian:
-			HapticDirection.type = SDL_HAPTIC_CARTESIAN;
-			break;
-		case EForceFeedbackDirectionType::Spherical:
-			HapticDirection.type = SDL_HAPTIC_SPHERICAL;
-			break;
+		switch (DirectionType)
+		{
+			case EForceFeedbackDirectionType::Polar:
+				HapticDirection.type = SDL_HAPTIC_POLAR;
+				break;
+			case EForceFeedbackDirectionType::Spherical:
+				HapticDirection.type = SDL_HAPTIC_SPHERICAL;
+				break;
+			case EForceFeedbackDirectionType::Cartesian:
+				HapticDirection.type = SDL_HAPTIC_CARTESIAN;
+				break;
+			default:
+			case EForceFeedbackDirectionType::SteeringAxis:
+#if ENGINE_MAJOR_VERSION == 5
+				HapticDirection.type = SDL_HAPTIC_STEERING_AXIS;
+#else
+				HapticDirection.type = SDL_HAPTIC_FIRST_AXIS;
+#endif
+				break;
 		}
 
 		return HapticDirection;
